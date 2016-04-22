@@ -1,0 +1,10 @@
+{
+  "name": "slap-reviews",
+  "version": "0.0.0",
+  "license": "GPL-3.0",
+  "repository": "kyle-ilantzis/slap-reviews",
+  "dependencies": {
+    "request": "*",
+    "cheerio": "*"
+  }
+}
