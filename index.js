@@ -1,6 +1,7 @@
 "use strict";
 
 let fs = require('fs');
+let path = require('path');
 
 let request = require("request");
 let cheerio = require("cheerio");
@@ -10,8 +11,8 @@ let IOS_TYPE = "ios";
 
 let main = () => {
 
-  let config = readAllJSON('config.json');
-  let db = readAllJSON('db.json');
+  let config = readAllJSON( path.join(__dirname, 'config.json') );
+  let db = readAllJSON( path.join(__dirname, 'db.json') );
 
   config.apps.forEach( (app) => {
 
