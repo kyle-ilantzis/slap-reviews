@@ -2,6 +2,7 @@
 
 let fs = require('fs');
 let path = require('path');
+let process = require('process');
 
 let request = require("request");
 let cheerio = require("cheerio");
@@ -9,24 +10,27 @@ let cheerio = require("cheerio");
 let ANDROID_TYPE = "android";
 let IOS_TYPE = "ios";
 
+let CONFIG_FILE = path.join(__dirname, 'config.json');
+let DB_FILE = path.join(__dirname, 'db.json');
+
 let main = () => {
 
-  let config = readAllJSON( path.join(__dirname, 'config.json') );
-  let db = readAllJSON( path.join(__dirname, 'db.json') );
+  let config = readAllJSON( CONFIG_FILE );
+  let db = readAllJSON( DB_FILE );
 
   config.apps.forEach( (app) => {
 
     if (app.type === ANDROID_TYPE) {
 
       getHtml( googlePlayReviewsUrl(app.appId), ($) => {
-          let reviews = transformGooglePlayReviews( $ );
+          let reviews = tryTransform(app, transformGooglePlayReviews, $ );
           postLatestReviews(app, reviews);
       });
 
     } else if (app.type === IOS_TYPE) {
 
       getJson( appStoreReviewsUrl(app.appCountry, app.appId), (json) => {
-          let reviews = transformAppStoreReviews(json);
+          let reviews = tryTransform(app, transformAppStoreReviews, json );
           postLatestReviews(app, reviews);
       });
 
@@ -41,11 +45,13 @@ let main = () => {
     let theLatestTimestamp = latest[0];
     let theLastestReviews = latest[1];
 
+    console.log( "Posting %d new reviews for %j", theLastestReviews.length, app );
+
     postReviews( config.slackWebhookUrl, app, theLastestReviews );
 
     db[app.name] = Math.max( theLatestTimestamp, oldTimestamp );
 
-    saveAllJSON( 'db.json', db );
+    saveAllJSON( DB_FILE, db );
   };
 };
 
@@ -76,6 +82,18 @@ let latestReviews = (reviews, timestamp) => {
   let latestTimestamp = latestReviews.length > 0 ? latestReviews[0].timestamp : 0;
 
   return [firstTruthy( latestTimestamp, 0 ), latestReviews];
+}
+
+let tryTransform = ( app, transform, value ) => {
+
+  try {
+    return transform(value);
+  } catch( e ) {
+    console.error( "Error while transforming %j", app );
+    console.error(e.stack);
+    process.exitCode = 1;
+    return [];
+  }
 }
 
 let googlePlayReviewsUrl = (androidAppId) => {
