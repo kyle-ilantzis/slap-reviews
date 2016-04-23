@@ -14,6 +14,8 @@ The latest reviews are posted to slack using a
 
 **git clone** this repository and copy [config.example.json](config.example.json) to config.json.
 
+    $> npm install
+
 Edit config.json to add your slack webhook url. Add your android and ios apps to config.json
 
 **Note:** Each app name must be unique even between platforms in config.json.
