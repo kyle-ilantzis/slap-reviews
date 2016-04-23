@@ -54,19 +54,16 @@ let postReviews = (slackWebhookUrl, app, reviews) => {
     return;
   }
 
-  console.log("reviews");
-  console.log(reviews);
-
   let attachments = reviews.map( (r) => {
     return { text: [r.author, r.date, r.rating, r.title, r.desc].join("\n") };
   });
 
   let payload = {
-    text: "New " + app.name + " " + app.type + " reviews!",
+    username: "slap-reviews",
+    icon_emoji: ":iphone:",
+    text: "New " + app.name + " reviews!",
     attachments: attachments
   };
-
-  console.log(payload);
 
   request.post(slackWebhookUrl).form({ payload: JSON.stringify(payload) });
 };
