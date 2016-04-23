@@ -4,6 +4,7 @@
   "license": "GPL-3.0",
   "repository": "kyle-ilantzis/slap-reviews",
   "dependencies": {
+    "alljson": "*",
     "request": "*",
     "cheerio": "*"
   }

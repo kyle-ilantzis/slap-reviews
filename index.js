@@ -4,6 +4,7 @@ let fs = require('fs');
 let path = require('path');
 let process = require('process');
 
+let aj = require('alljson');
 let request = require("request");
 let cheerio = require("cheerio");
 
@@ -15,8 +16,8 @@ let DB_FILE = path.join(__dirname, 'db.json');
 
 let main = () => {
 
-  let config = readAllJSON( CONFIG_FILE );
-  let db = readAllJSON( DB_FILE );
+  let config = aj.readAllJSON( CONFIG_FILE );
+  let db = aj.readAllJSON( DB_FILE );
 
   config.apps.forEach( (app) => {
 
@@ -51,7 +52,7 @@ let main = () => {
 
     db[app.name] = Math.max( theLatestTimestamp, oldTimestamp );
 
-    saveAllJSON( DB_FILE, db );
+    aj.saveAllJSON( DB_FILE, db );
   };
 };
 
@@ -152,15 +153,6 @@ let transformAppStoreReviews = (json) => {
       desc: desc
     };
   });
-};
-
-let readAllJSON = (file) => {
-  var read = !fs.existsSync(file) ? null : fs.readFileSync(file, {encoding: 'utf8'});
-  return read === null ? {} : JSON.parse( read );
-};
-
-let saveAllJSON = (file,json) => {
-  fs.writeFileSync(file,JSON.stringify(json));
 };
 
 let get = (url,cb) => {
