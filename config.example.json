@@ -1,6 +1,16 @@
 {
-  "androidAppId": "com.example.app",
-  "iosAppCountry": "ca",
-  "iosAppId": "000000000",
-  "slackWebhookUrl": "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+  "slackWebhookUrl": "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+  "apps": [
+    {
+      "name": "my android app",
+      "type": "android",
+      "appId": "com.example.app"
+    },
+    {
+      "name": "my ios app",
+      "type": "ios",
+      "appCountry": "ca",
+      "appId": "000000000"
+    }
+  ]
 }

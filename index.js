@@ -5,65 +5,64 @@ let fs = require('fs');
 let request = require("request");
 let cheerio = require("cheerio");
 
+let ANDROID_TYPE = "android";
+let IOS_TYPE = "ios";
+
 let main = () => {
 
   let config = readAllJSON('config.json');
   let db = readAllJSON('db.json');
 
-  var androidReviews;
-  var iosReviews;
+  config.apps.forEach( (app) => {
 
-  let join = () => {
-    if (!androidReviews || !iosReviews) {
-      return;
+    if (app.type === ANDROID_TYPE) {
+
+      getHtml( googlePlayReviewsUrl(app.appId), ($) => {
+          let reviews = transformGooglePlayReviews( $ );
+          postLatestReviews(app, reviews);
+      });
+
+    } else if (app.type === IOS_TYPE) {
+
+      getJson( appStoreReviewsUrl(app.appCountry, app.appId), (json) => {
+          let reviews = transformAppStoreReviews(json);
+          postLatestReviews(app, reviews);
+      });
+
     }
+  });
 
-    // console.log(androidReviews);
-    // console.log(iosReviews);
+  let postLatestReviews = (app,reviews) => {
 
-    let oldAndroidTimestamp = firstTruthy( db.androidTimestamp, 0 );
-    let oldIosTimestamp = firstTruthy( db.iosTimestamp, 0 );
+    let oldTimestamp = firstTruthy( db[app.name], 0 );
 
-    let androidLatest = latestReviews( androidReviews, oldAndroidTimestamp );
-    let androidTimestamp = androidLatest[0];
-    let lastestAndroidReviews = androidLatest[1];
+    let latest = latestReviews( reviews, oldTimestamp );
+    let theLatestTimestamp = latest[0];
+    let theLastestReviews = latest[1];
 
-    let iosLatest = latestReviews( iosReviews, oldIosTimestamp );
-    let iosTimestamp = iosLatest[0];
-    let lastestIosReviews = iosLatest[1];
+    postReviews( config.slackWebhookUrl, app, theLastestReviews );
 
-    postReviews( config.slackWebhookUrl, "android", lastestAndroidReviews );
-    postReviews( config.slackWebhookUrl, "ios", lastestIosReviews );
-
-    db.androidTimestamp = Math.max( androidTimestamp, oldAndroidTimestamp );
-    db.iosTimestamp = Math.max( iosTimestamp, oldIosTimestamp );
+    db[app.name] = Math.max( theLatestTimestamp, oldTimestamp );
 
     saveAllJSON( 'db.json', db );
   };
+};
 
-  getHtml( googlePlayReviewsUrl(config.androidAppId), ($) => {
-      androidReviews = transformGooglePlayReviews( $ );
-      join();
-  });
+let postReviews = (slackWebhookUrl, app, reviews) => {
 
-  getJson( appStoreReviewsUrl(config.iosAppCountry, config.iosAppId), (json) => {
-      iosReviews = transformAppStoreReviews(json);
-      join();
-  });
-}
-
-let postReviews = (slackWebhookUrl, type, reviews) => {
-
-  if (!reviews || reviews.length == 0) {
+  if (!reviews || reviews.length === 0) {
     return;
   }
+
+  console.log("reviews");
+  console.log(reviews);
 
   let attachments = reviews.map( (r) => {
     return { text: [r.author, r.date, r.rating, r.title, r.desc].join("\n") };
   });
 
   let payload = {
-    text: "New " + type + " reviews!",
+    text: "New " + app.name + " " + app.type + " reviews!",
     attachments: attachments
   };
 
