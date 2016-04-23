@@ -117,9 +117,27 @@ let appStoreReviewsUrl = (iosAppCountry, iosAppId) => {
 }
 
 let transformAppStoreReviews = (json) => {
-  // TODO
-  return [];
-}
+
+  return json.feed.entry.slice(1).map( (entry) => {
+
+    let author = entry.author.name.label;
+    let date = undefined;
+    let rating = entry["im:rating"].label;
+    let title = entry.title.label;
+    let desc = entry.content.label;
+
+    let timestamp = parseInt( entry.id.label, 10 );
+
+    return {
+      author: author,
+      date: date,
+      timestamp: timestamp,
+      rating: rating,
+      title: title,
+      desc: desc
+    };
+  });
+};
 
 let readAllJSON = (file) => {
   var read = !fs.existsSync(file) ? null : fs.readFileSync(file, {encoding: 'utf8'});
