@@ -24,11 +24,15 @@ Instead name the android app "X android" and the ios app "X ios" in config.json.
 
 # Usage
 
-    $> node index.js
+    $> node index.js init
+
+First time setup to find the latest review and post it on slack.
+
+    $> node index.js update
 
 This will run the script and post your latest reviews to slack.
 
-Setup a cron job to run the script every so often.
+Setup a cron job to run the updat script every so often.
 
 # License
 

@@ -14,7 +14,26 @@ let IOS_TYPE = "ios";
 let CONFIG_FILE = path.join(__dirname, 'config.json');
 let DB_FILE = path.join(__dirname, 'db.json');
 
-let main = () => {
+let usage = (name) => {
+  console.log("%s: [init|update]", name);
+  console.log("\tinit\tfirst time setup to find the latest review and post it on slack");
+  console.log("\tupdate\tfind the lastest reviews since the last run and post them on slack");
+};
+
+let main = (args) => {
+
+  let name = path.basename( args[0] );
+  let cmd = args[1];
+  let isInit = cmd === "init";
+
+  if ( args.length > 2 || (cmd !== "init" && cmd !== "update" ) ) {
+    usage( name );
+  } else {
+    run( isInit );
+  }
+};
+
+let run = (isInit) => {
 
   let config = aj.readAllJSON( CONFIG_FILE );
   let db = aj.readAllJSON( DB_FILE );
@@ -40,13 +59,13 @@ let main = () => {
 
   let postLatestReviews = (app,reviews) => {
 
-    let oldTimestamp = firstTruthy( db[app.name], 0 );
+    let oldTimestamp = isInit ? 0 : firstTruthy( db[app.name], 0 );
 
     let latest = latestReviews( reviews, oldTimestamp );
     let theLatestTimestamp = latest[0];
-    let theLastestReviews = latest[1];
+    let theLastestReviews = isInit ? headAsList( latest[1] ) : latest[1];
 
-    console.log( "Posting %d new reviews for %j", theLastestReviews.length, app );
+    console.log( "Posting %d new reviews for %s", theLastestReviews.length, app.name );
 
     postReviews( config.slackWebhookUrl, app, theLastestReviews );
 
@@ -188,6 +207,8 @@ let getJson = (url,cb) => {
   get(url, cbBody);
 }
 
+let headAsList = (xs) => xs.length > 0 ? [xs[0]] : [];
+
 let firstTruthy = (a,b) => a ? a : b;
 
-main();
+main(process.argv.slice(1));
