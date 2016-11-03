@@ -1,3 +1,5 @@
+#!/usr/local/bin/node
+
 "use strict";
 
 let fs = require('fs');
@@ -153,7 +155,11 @@ let appStoreReviewsUrl = (iosAppCountry, iosAppId) => {
 
 let transformAppStoreReviews = (json) => {
 
-  return json.feed.entry.slice(1).map( (entry) => {
+  let maybeFeed = json.feed;
+  let maybeEntry = maybeFeed ? maybeFeed.entry : null;
+  let entry = maybeEntry || [];
+
+  return entry.slice(1).map( (entry) => {
 
     let author = entry.author.name.label;
     let date = undefined;
